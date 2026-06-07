@@ -1,0 +1,60 @@
+{% extends "layouts/base.html" %}
+{% block title %}Team Overview - Task Manager{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Team Overview</h1>
+</div>
+
+<div class="stats-grid">
+    {% for s, label in [('todo', 'To Do'), ('in_progress', 'In Progress'), ('review', 'Review'), ('done', 'Done')] %}
+    <div class="stat-card">
+        <div class="stat-value">{{ status_counts[s] }}</div>
+        <div class="stat-label">{{ label }}</div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="dashboard-grid">
+    <div class="card">
+        <h3>Workload by Team Member</h3>
+        {% if workload %}
+        <div class="workload-list">
+            {% for item in workload %}
+            <div class="workload-item">
+                <div class="workload-user">
+                    <img src="{{ item.user.gravatar(28) }}" class="avatar-sm">
+                    <span>{{ item.user.username }}</span>
+                </div>
+                <div class="workload-bar-container">
+                    <div class="workload-bar" style="width: {{ [item.count * 10, 100]|min }}%"></div>
+                    <span class="workload-count">{{ item.count }} tasks</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h3>Overdue Tasks</h3>
+        {% if overdue_tasks %}
+        <div class="task-list-compact">
+            {% for task in overdue_tasks %}
+            <a href="{{ url_for('tasks.detail', task_id=task.id) }}" class="task-list-item overdue-item">
+                <span class="badge badge-{{ task.priority_class }} badge-sm">{{ task.priority[0]|upper }}</span>
+                <span class="task-list-title">{{ task.title }}</span>
+                <span class="task-deadline overdue">{{ task.deadline.strftime('%b %d') }}</span>
+                {% if task.assignee %}
+                <span class="text-muted">{{ task.assignee.username }}</span>
+                {% endif %}
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted">No overdue tasks.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

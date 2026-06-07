@@ -1,0 +1,68 @@
+{% extends "layouts/base.html" %}
+{% block title %}New Task - Task Manager{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Create Task</h1>
+</div>
+
+<form method="POST" action="{{ url_for('tasks.create') }}" class="form-card">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="form-group">
+        <label for="title">Title *</label>
+        <input type="text" id="title" name="title" required placeholder="Task title" autofocus>
+    </div>
+
+    <div class="form-group">
+        <label for="description">Description</label>
+        <textarea id="description" name="description" rows="5" placeholder="Describe the task..."></textarea>
+    </div>
+
+    <div class="form-row-2">
+        <div class="form-group">
+            <label for="priority">Priority</label>
+            <select id="priority" name="priority">
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="assignee_id">Assign To</label>
+            <select id="assignee_id" name="assignee_id">
+                <option value="">Unassigned</option>
+                {% for user in users %}
+                <option value="{{ user.id }}">{{ user.display_name }} ({{ user.username }})</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div class="form-row-2">
+        <div class="form-group">
+            <label for="team_id">Team</label>
+            <select id="team_id" name="team_id">
+                <option value="">No team</option>
+                {% for team in teams %}
+                <option value="{{ team.id }}">{{ team.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="deadline">Deadline</label>
+            <input type="datetime-local" id="deadline" name="deadline">
+        </div>
+        <div class="form-group">
+            <label for="tags">Tags (comma-separated)</label>
+            <input type="text" id="tags" name="tags" placeholder="bug, frontend, urgent">
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <a href="{{ url_for('tasks.list_tasks') }}" class="btn btn-outline">Cancel</a>
+        <button type="submit" class="btn btn-primary">Create Task</button>
+    </div>
+</form>
+{% endblock %}

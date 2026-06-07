@@ -1,0 +1,85 @@
+{% extends "layouts/base.html" %}
+{% block title %}Tasks - Task Manager{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Tasks</h1>
+    <a href="{{ url_for('tasks.create') }}" class="btn btn-primary">+ New Task</a>
+</div>
+
+<div class="filters-bar">
+    <form method="GET" action="{{ url_for('tasks.list_tasks') }}" class="filters-form">
+        <input type="text" name="q" placeholder="Search tasks..." value="{{ search_query }}" class="input-search" id="taskSearch">
+        <select name="status" onchange="this.form.submit()">
+            <option value="">All Statuses</option>
+            <option value="todo" {{ 'selected' if current_status == 'todo' }}>To Do</option>
+            <option value="in_progress" {{ 'selected' if current_status == 'in_progress' }}>In Progress</option>
+            <option value="review" {{ 'selected' if current_status == 'review' }}>Review</option>
+            <option value="done" {{ 'selected' if current_status == 'done' }}>Done</option>
+        </select>
+        <select name="priority" onchange="this.form.submit()">
+            <option value="">All Priorities</option>
+            <option value="low" {{ 'selected' if current_priority == 'low' }}>Low</option>
+            <option value="medium" {{ 'selected' if current_priority == 'medium' }}>Medium</option>
+            <option value="high" {{ 'selected' if current_priority == 'high' }}>High</option>
+            <option value="critical" {{ 'selected' if current_priority == 'critical' }}>Critical</option>
+        </select>
+        <select name="assignee" onchange="this.form.submit()">
+            <option value="">All Assignees</option>
+            {% for user in users %}
+            <option value="{{ user.id }}" {{ 'selected' if current_assignee == user.id|string }}>{{ user.username }}</option>
+            {% endfor %}
+        </select>
+        <select name="team" onchange="this.form.submit()">
+            <option value="">All Teams</option>
+            {% for team in teams %}
+            <option value="{{ team.id }}" {{ 'selected' if current_team == team.id|string }}>{{ team.name }}</option>
+            {% endfor %}
+        </select>
+    </form>
+</div>
+
+<div class="task-board">
+    {% for status_key, status_label in [('todo', 'To Do'), ('in_progress', 'In Progress'), ('review', 'Review'), ('done', 'Done')] %}
+    <div class="task-column" data-status="{{ status_key }}">
+        <div class="column-header">
+            <h3>{{ status_label }}</h3>
+            <span class="column-count">{{ tasks|selectattr('status', 'equalto', status_key)|list|length }}</span>
+        </div>
+        <div class="column-body" data-status="{{ status_key }}">
+            {% for task in tasks if task.status == status_key %}
+            <div class="task-card" draggable="true" data-task-id="{{ task.id }}">
+                <div class="task-card-header">
+                    <span class="badge badge-{{ task.priority_class }}">{{ task.priority }}</span>
+                    {% if task.is_overdue %}<span class="badge badge-error">Overdue</span>{% endif %}
+                </div>
+                <a href="{{ url_for('tasks.detail', task_id=task.id) }}" class="task-card-title">{{ task.title }}</a>
+                <div class="task-card-meta">
+                    {% if task.assignee %}
+                    <span class="task-assignee">
+                        <img src="{{ task.assignee.gravatar(20) }}" class="avatar-xs"> {{ task.assignee.username }}
+                    </span>
+                    {% endif %}
+                    {% if task.deadline %}
+                    <span class="task-deadline {{ 'overdue' if task.is_overdue }}">{{ task.deadline.strftime('%b %d') }}</span>
+                    {% endif %}
+                </div>
+                {% if task.team %}
+                <div class="task-card-meta" style="margin-top:.25rem">
+                    <span class="tag" style="background:{{ task.team.color }}20; color:{{ task.team.color }}">{{ task.team.name }}</span>
+                </div>
+                {% endif %}
+                {% if task.tags %}
+                <div class="task-tags">
+                    {% for tag in task.tags %}<span class="tag">{{ tag.name }}</span>{% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_js %}<script src="{{ url_for('static', filename='js/tasks.js') }}"></script>{% endblock %}

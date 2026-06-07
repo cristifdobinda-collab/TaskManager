@@ -1,0 +1,25 @@
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - task_data:/app/instance
+    environment:
+      - SECRET_KEY=${SECRET_KEY:-schimba-aceasta-cheie-in-productie}
+      - DATABASE_URL=sqlite:////app/instance/app.db
+      - MAIL_SERVER=${MAIL_SERVER:-localhost}
+      - MAIL_PORT=${MAIL_PORT:-1025}
+      - MAIL_USE_TLS=${MAIL_USE_TLS:-false}
+      - MAIL_DEFAULT_SENDER=${MAIL_DEFAULT_SENDER:-taskmanager@localhost}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/auth/login')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  task_data:
+    driver: local

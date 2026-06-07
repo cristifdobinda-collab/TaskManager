@@ -1,0 +1,96 @@
+{% extends "layouts/base.html" %}
+{% block title %}Edit Profile - Task Manager{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Edit Profile</h1>
+</div>
+
+<div class="form-card-grid">
+    <form method="POST" action="{{ url_for('profile.edit') }}" class="form-card">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <h3>Personal Information</h3>
+
+        <div class="form-group">
+            <label for="full_name">Full Name</label>
+            <input type="text" id="full_name" name="full_name" value="{{ current_user.full_name }}" placeholder="Your full name">
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" value="{{ current_user.email }}">
+        </div>
+
+        <div class="form-row-2">
+            <div class="form-group">
+                <label for="job_title">Job Title</label>
+                <input type="text" id="job_title" name="job_title" value="{{ current_user.job_title }}" placeholder="e.g. Software Engineer">
+            </div>
+            <div class="form-group">
+                <label for="department">Department</label>
+                <input type="text" id="department" name="department" value="{{ current_user.department }}" placeholder="e.g. Engineering">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="bio">Bio</label>
+            <textarea id="bio" name="bio" rows="3" placeholder="Tell us about yourself...">{{ current_user.bio }}</textarea>
+        </div>
+
+        <h4>Notification Preferences</h4>
+        <div class="form-group">
+            <label class="checkbox-label">
+                <input type="checkbox" name="notify_assignment" {{ 'checked' if current_user.notify_assignment }}>
+                Task assignments
+            </label>
+        </div>
+        <div class="form-group">
+            <label class="checkbox-label">
+                <input type="checkbox" name="notify_comments" {{ 'checked' if current_user.notify_comments }}>
+                Comments on my tasks
+            </label>
+        </div>
+        <div class="form-group">
+            <label class="checkbox-label">
+                <input type="checkbox" name="notify_deadlines" {{ 'checked' if current_user.notify_deadlines }}>
+                Deadline reminders
+            </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+    </form>
+
+    <div>
+        <form method="POST" action="{{ url_for('profile.change_password') }}" class="form-card">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <h3>Change Password</h3>
+
+            <div class="form-group">
+                <label for="current_password">Current Password</label>
+                <input type="password" id="current_password" name="current_password" required>
+            </div>
+            <div class="form-group">
+                <label for="new_password">New Password</label>
+                <input type="password" id="new_password" name="new_password" required minlength="6">
+            </div>
+            <div class="form-group">
+                <label for="confirm_password">Confirm New Password</label>
+                <input type="password" id="confirm_password" name="confirm_password" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Change Password</button>
+        </form>
+
+        <div class="card" style="margin-top: 1rem;">
+            <h3>Avatar</h3>
+            <div class="profile-header" style="gap: 1rem">
+                <img src="{{ current_user.gravatar(64) }}" class="avatar-lg" style="width:64px;height:64px">
+                <div>
+                    <p class="text-sm">Your avatar is powered by <a href="https://gravatar.com" target="_blank">Gravatar</a>.</p>
+                    <p class="text-muted text-sm">Update your avatar at gravatar.com using your email address.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,167 @@
+{% extends "layouts/base.html" %}
+{% block title %}{{ current_user.display_name }} - Profile{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>My Profile</h1>
+    <a href="{{ url_for('profile.edit') }}" class="btn btn-outline">Edit Profile</a>
+</div>
+
+<!-- Profile Header -->
+<div class="card profile-card">
+    <div class="profile-header">
+        <img src="{{ current_user.gravatar(96) }}" class="avatar-lg">
+        <div class="profile-info">
+            <h2>{{ current_user.display_name }}</h2>
+            {% if current_user.job_title %}
+            <p class="profile-title">{{ current_user.job_title }}{% if current_user.department %} &middot; {{ current_user.department }}{% endif %}</p>
+            {% endif %}
+            <p class="text-muted">{{ current_user.email }}</p>
+            <div class="profile-badges">
+                <span class="badge badge-info">{{ current_user.role|capitalize }}</span>
+                <span class="text-muted text-sm">Member since {{ current_user.created_at.strftime('%b %d, %Y') }}</span>
+                {% if current_user.last_seen %}
+                <span class="text-muted text-sm">Last active {{ current_user.last_seen.strftime('%b %d, %H:%M') }}</span>
+                {% endif %}
+            </div>
+            {% if current_user.bio %}
+            <p class="profile-bio">{{ current_user.bio }}</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Stats Overview -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ total_assigned }}</div>
+        <div class="stat-label">Tasks Assigned</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ total_created }}</div>
+        <div class="stat-label">Tasks Created</div>
+    </div>
+    <div class="stat-card stat-success">
+        <div class="stat-value">{{ completed }}</div>
+        <div class="stat-label">Completed</div>
+    </div>
+    <div class="stat-card stat-info">
+        <div class="stat-value">{{ completion_rate }}%</div>
+        <div class="stat-label">Completion Rate</div>
+    </div>
+    <div class="stat-card stat-warning">
+        <div class="stat-value">{{ in_progress }}</div>
+        <div class="stat-label">In Progress</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ total_comments }}</div>
+        <div class="stat-label">Comments</div>
+    </div>
+</div>
+
+<!-- Completion Progress Bar -->
+{% if total_assigned > 0 %}
+<div class="card">
+    <h3>Task Progress</h3>
+    <div class="progress-row">
+        <div class="progress-bar-full">
+            {% if completed > 0 %}
+            <div class="progress-segment progress-done" style="width: {{ (completed / total_assigned * 100)|int }}%" title="Done: {{ completed }}"></div>
+            {% endif %}
+            {% if in_progress > 0 %}
+            <div class="progress-segment progress-active" style="width: {{ (in_progress / total_assigned * 100)|int }}%" title="In Progress: {{ in_progress }}"></div>
+            {% endif %}
+            {% if todo > 0 %}
+            <div class="progress-segment progress-pending" style="width: {{ (todo / total_assigned * 100)|int }}%" title="To Do: {{ todo }}"></div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="progress-legend">
+        <span><span class="legend-dot" style="background: var(--success)"></span> Done {{ completed }}</span>
+        <span><span class="legend-dot" style="background: var(--primary)"></span> In Progress {{ in_progress }}</span>
+        <span><span class="legend-dot" style="background: #cbd5e1"></span> To Do {{ todo }}</span>
+        {% if overdue > 0 %}
+        <span><span class="legend-dot" style="background: var(--error)"></span> Overdue {{ overdue }}</span>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Priority Breakdown -->
+{% if total_assigned > 0 %}
+<div class="card">
+    <h3>Priority Breakdown</h3>
+    <div class="chart-bars">
+        {% set max_p = [priority_stats.low, priority_stats.medium, priority_stats.high, priority_stats.critical]|max or 1 %}
+        {% for p, label, color in [('low', 'Low', '#22c55e'), ('medium', 'Medium', '#3b82f6'), ('high', 'High', '#f97316'), ('critical', 'Critical', '#ef4444')] %}
+        <div class="chart-bar-row">
+            <span class="chart-label">{{ label }}</span>
+            <div class="chart-bar-bg">
+                <div class="chart-bar-fill" style="width: {{ (priority_stats[p] / max_p * 100)|int }}%; background: {{ color }}"></div>
+            </div>
+            <span class="chart-value">{{ priority_stats[p] }}</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div class="dashboard-grid">
+    <!-- Teams -->
+    <div class="card">
+        <h3>My Teams</h3>
+        {% if teams %}
+        <div class="team-list-compact">
+            {% for team in teams %}
+            <a href="{{ url_for('teams.detail', team_id=team.id) }}" class="team-list-item">
+                <span class="team-color-dot" style="background: {{ team.color }}"></span>
+                <span class="task-list-title">{{ team.name }}</span>
+                <span class="text-muted text-sm">{{ team.member_count }} members</span>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted">Not a member of any team yet. <a href="{{ url_for('teams.list_teams') }}">Browse teams</a></p>
+        {% endif %}
+    </div>
+
+    <!-- Recent Tasks -->
+    <div class="card">
+        <h3>Recent Tasks</h3>
+        {% if recent_tasks %}
+        <div class="task-list-compact">
+            {% for task in recent_tasks %}
+            <a href="{{ url_for('tasks.detail', task_id=task.id) }}" class="task-list-item">
+                <span class="badge badge-{{ task.priority_class }} badge-sm">{{ task.priority[0]|upper }}</span>
+                <span class="task-list-title">{{ task.title }}</span>
+                <span class="status-badge status-{{ task.status }} badge-sm">{{ task.status_label }}</span>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted">No tasks yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- Recent Comments -->
+    <div class="card">
+        <h3>Recent Comments</h3>
+        {% if recent_comments %}
+        <div class="activity-list">
+            {% for comment in recent_comments %}
+            <div class="activity-item">
+                <div>
+                    <a href="{{ url_for('tasks.detail', task_id=comment.task_id) }}">{{ comment.task.title }}</a>
+                    <p class="text-sm comment-preview">{{ comment.content[:140] }}{{ '...' if comment.content|length > 140 }}</p>
+                    <span class="text-muted text-sm">{{ comment.created_at.strftime('%b %d, %H:%M') }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted">No comments yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

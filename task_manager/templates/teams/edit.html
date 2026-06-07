@@ -1,0 +1,43 @@
+{% extends "layouts/base.html" %}
+{% block title %}Edit {{ team.name }} - Task Manager{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Edit Team</h1>
+</div>
+
+<form method="POST" action="{{ url_for('teams.edit', team_id=team.id) }}" class="form-card">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="form-group">
+        <label for="name">Team Name *</label>
+        <input type="text" id="name" name="name" required value="{{ team.name }}">
+    </div>
+
+    <div class="form-group">
+        <label for="description">Description</label>
+        <textarea id="description" name="description" rows="3">{{ team.description }}</textarea>
+    </div>
+
+    <div class="form-row-2">
+        <div class="form-group">
+            <label for="lead_id">Team Lead</label>
+            <select id="lead_id" name="lead_id">
+                <option value="">No lead</option>
+                {% for user in users %}
+                <option value="{{ user.id }}" {{ 'selected' if team.lead_id == user.id }}>{{ user.display_name }} ({{ user.username }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="color">Color</label>
+            <input type="color" id="color" name="color" value="{{ team.color }}" class="color-input">
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <a href="{{ url_for('teams.detail', team_id=team.id) }}" class="btn btn-outline">Cancel</a>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+    </div>
+</form>
+{% endblock %}

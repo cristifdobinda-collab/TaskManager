@@ -1,0 +1,107 @@
+{% extends "layouts/base.html" %}
+{% block title %}Dashboard - Task Manager{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Dashboard</h1>
+    <a href="{{ url_for('tasks.create') }}" class="btn btn-primary">+ New Task</a>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.total }}</div>
+        <div class="stat-label">Total Tasks</div>
+    </div>
+    <div class="stat-card stat-info">
+        <div class="stat-value">{{ stats.todo }}</div>
+        <div class="stat-label">To Do</div>
+    </div>
+    <div class="stat-card stat-warning">
+        <div class="stat-value">{{ stats.in_progress }}</div>
+        <div class="stat-label">In Progress</div>
+    </div>
+    <div class="stat-card stat-success">
+        <div class="stat-value">{{ stats.done }}</div>
+        <div class="stat-label">Done</div>
+    </div>
+    {% if stats.overdue > 0 %}
+    <div class="stat-card stat-error">
+        <div class="stat-value">{{ stats.overdue }}</div>
+        <div class="stat-label">Overdue</div>
+    </div>
+    {% endif %}
+</div>
+
+<div class="dashboard-grid">
+    <div class="card">
+        <h3>My Tasks</h3>
+        {% if my_tasks %}
+        <div class="task-list-compact">
+            {% for task in my_tasks[:10] %}
+            <a href="{{ url_for('tasks.detail', task_id=task.id) }}" class="task-list-item">
+                <span class="badge badge-{{ task.priority_class }} badge-sm">{{ task.priority[0]|upper }}</span>
+                <span class="task-list-title">{{ task.title }}</span>
+                <span class="status-badge status-{{ task.status }} badge-sm">{{ task.status_label }}</span>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted">No tasks assigned to you.</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h3>Upcoming Deadlines</h3>
+        {% if upcoming_deadlines %}
+        <div class="task-list-compact">
+            {% for task in upcoming_deadlines %}
+            <a href="{{ url_for('tasks.detail', task_id=task.id) }}" class="task-list-item">
+                <span class="task-list-title">{{ task.title }}</span>
+                <span class="task-deadline {{ 'overdue' if task.is_overdue }}">{{ task.deadline.strftime('%b %d') }}</span>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted">No upcoming deadlines.</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h3>My Teams</h3>
+        {% if my_teams %}
+        <div class="team-list-compact">
+            {% for team in my_teams %}
+            <a href="{{ url_for('teams.detail', team_id=team.id) }}" class="team-list-item">
+                <span class="team-color-dot" style="background: {{ team.color }}"></span>
+                <span class="task-list-title">{{ team.name }}</span>
+                <span class="text-muted text-sm">{{ team.member_count }} members</span>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted">Not in any teams yet. <a href="{{ url_for('teams.list_teams') }}">Browse teams</a></p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h3>Recent Activity</h3>
+        {% if recent_comments %}
+        <div class="activity-list">
+            {% for comment in recent_comments %}
+            <div class="activity-item">
+                <img src="{{ comment.author.gravatar(24) }}" class="avatar-xs">
+                <div>
+                    <strong>{{ comment.author.username }}</strong> commented on
+                    <a href="{{ url_for('tasks.detail', task_id=comment.task_id) }}">{{ comment.task.title }}</a>
+                    <div class="text-muted text-sm">{{ comment.created_at.strftime('%b %d, %H:%M') }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted">No recent activity.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

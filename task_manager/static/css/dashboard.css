@@ -1,0 +1,39 @@
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    text-align: center;
+    box-shadow: var(--shadow);
+}
+.stat-card.stat-info { border-left: 3px solid var(--info); }
+.stat-card.stat-success { border-left: 3px solid var(--success); }
+.stat-card.stat-warning { border-left: 3px solid var(--warning); }
+.stat-card.stat-error { border-left: 3px solid var(--error); }
+.stat-value { font-size: 2rem; font-weight: 700; color: var(--text); }
+.stat-label { font-size: .8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; margin-top: .25rem; }
+
+.dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1rem; }
+
+/* Workload bars */
+.workload-list { display: flex; flex-direction: column; gap: .75rem; }
+.workload-item { display: flex; align-items: center; gap: 1rem; }
+.workload-user { display: flex; align-items: center; gap: .5rem; min-width: 120px; font-size: .875rem; }
+.workload-bar-container { flex: 1; display: flex; align-items: center; gap: .5rem; }
+.workload-bar-bg { flex: 1; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+.workload-bar { height: 100%; background: var(--primary); border-radius: 4px; transition: width .3s; }
+.workload-count { font-size: .8rem; color: var(--text-muted); white-space: nowrap; }
+
+/* Chart bars */
+.chart-bars { display: flex; flex-direction: column; gap: .75rem; }
+.chart-bar-row { display: flex; align-items: center; gap: .75rem; }
+.chart-label { min-width: 60px; font-size: .85rem; font-weight: 500; }
+.chart-bar-bg { flex: 1; height: 24px; background: var(--bg); border-radius: var(--radius-sm); overflow: hidden; }
+.chart-bar-fill { height: 100%; border-radius: var(--radius-sm); transition: width .3s; }
+.chart-value { min-width: 30px; text-align: right; font-size: .85rem; font-weight: 600; }

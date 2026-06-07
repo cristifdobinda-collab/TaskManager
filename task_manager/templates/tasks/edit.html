@@ -1,0 +1,78 @@
+{% extends "layouts/base.html" %}
+{% block title %}Edit Task - Task Manager{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Edit Task</h1>
+</div>
+
+<form method="POST" action="{{ url_for('tasks.edit', task_id=task.id) }}" class="form-card">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="form-group">
+        <label for="title">Title *</label>
+        <input type="text" id="title" name="title" required value="{{ task.title }}">
+    </div>
+
+    <div class="form-group">
+        <label for="description">Description</label>
+        <textarea id="description" name="description" rows="5">{{ task.description }}</textarea>
+    </div>
+
+    <div class="form-row-2">
+        <div class="form-group">
+            <label for="priority">Priority</label>
+            <select id="priority" name="priority">
+                {% for p in ['low', 'medium', 'high', 'critical'] %}
+                <option value="{{ p }}" {{ 'selected' if task.priority == p }}>{{ p|capitalize }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="status">Status</label>
+            <select id="status" name="status">
+                {% for s, label in [('todo', 'To Do'), ('in_progress', 'In Progress'), ('review', 'Review'), ('done', 'Done')] %}
+                <option value="{{ s }}" {{ 'selected' if task.status == s }}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div class="form-row-2">
+        <div class="form-group">
+            <label for="assignee_id">Assign To</label>
+            <select id="assignee_id" name="assignee_id">
+                <option value="">Unassigned</option>
+                {% for user in users %}
+                <option value="{{ user.id }}" {{ 'selected' if task.assignee_id == user.id }}>{{ user.display_name }} ({{ user.username }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="deadline">Deadline</label>
+            <input type="datetime-local" id="deadline" name="deadline"
+                   value="{{ task.deadline.strftime('%Y-%m-%dT%H:%M') if task.deadline else '' }}">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="team_id">Team</label>
+        <select id="team_id" name="team_id">
+            <option value="">No team</option>
+            {% for team in teams %}
+            <option value="{{ team.id }}" {{ 'selected' if task.team_id == team.id }}>{{ team.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="tags">Tags (comma-separated)</label>
+        <input type="text" id="tags" name="tags" value="{{ task.tags|map(attribute='name')|join(', ') }}">
+    </div>
+
+    <div class="form-actions">
+        <a href="{{ url_for('tasks.detail', task_id=task.id) }}" class="btn btn-outline">Cancel</a>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+    </div>
+</form>
+{% endblock %}

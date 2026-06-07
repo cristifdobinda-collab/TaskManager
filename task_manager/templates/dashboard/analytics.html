@@ -1,0 +1,46 @@
+{% extends "layouts/base.html" %}
+{% block title %}Analytics - Task Manager{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Platform Analytics</h1>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ total_users }}</div>
+        <div class="stat-label">Total Users</div>
+    </div>
+    <div class="stat-card stat-info">
+        <div class="stat-value">{{ active_users }}</div>
+        <div class="stat-label">Active Users</div>
+    </div>
+    <div class="stat-card stat-success">
+        <div class="stat-value">{{ total_tasks }}</div>
+        <div class="stat-label">Total Tasks</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ total_comments }}</div>
+        <div class="stat-label">Comments</div>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <div class="card">
+        <h3>Tasks by Priority</h3>
+        <div class="chart-bars">
+            {% set max_count = [priority_counts.low, priority_counts.medium, priority_counts.high, priority_counts.critical]|max or 1 %}
+            {% for p, label, color in [('low', 'Low', '#22c55e'), ('medium', 'Medium', '#3b82f6'), ('high', 'High', '#f97316'), ('critical', 'Critical', '#ef4444')] %}
+            <div class="chart-bar-row">
+                <span class="chart-label">{{ label }}</span>
+                <div class="chart-bar-bg">
+                    <div class="chart-bar-fill" style="width: {{ (priority_counts[p] / max_count * 100)|int }}%; background: {{ color }}"></div>
+                </div>
+                <span class="chart-value">{{ priority_counts[p] }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

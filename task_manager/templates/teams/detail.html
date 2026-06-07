@@ -1,0 +1,119 @@
+{% extends "layouts/base.html" %}
+{% block title %}{{ team.name }} - Task Manager{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <a href="{{ url_for('teams.list_teams') }}" class="link-back">&larr; All Teams</a>
+        <h1>
+            <span class="team-color-dot" style="background: {{ team.color }}"></span>
+            {{ team.name }}
+        </h1>
+    </div>
+    <div class="page-actions">
+        {% set is_member = current_user in members %}
+        {% if not is_member %}
+        <form method="POST" action="{{ url_for('teams.join', team_id=team.id) }}" class="inline-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-primary">Join Team</button>
+        </form>
+        {% else %}
+        <form method="POST" action="{{ url_for('teams.leave', team_id=team.id) }}" class="inline-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-outline">Leave Team</button>
+        </form>
+        {% endif %}
+        {% if current_user.role in ('manager', 'admin') or current_user.id == team.lead_id %}
+        <a href="{{ url_for('teams.edit', team_id=team.id) }}" class="btn btn-outline">Edit Team</a>
+        {% endif %}
+    </div>
+</div>
+
+{% if team.description %}
+<div class="card">
+    <p>{{ team.description }}</p>
+</div>
+{% endif %}
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ members|length }}</div>
+        <div class="stat-label">Members</div>
+    </div>
+    <div class="stat-card stat-info">
+        <div class="stat-value">{{ total_tasks }}</div>
+        <div class="stat-label">Total Tasks</div>
+    </div>
+    <div class="stat-card stat-success">
+        <div class="stat-value">{{ completed_tasks }}</div>
+        <div class="stat-label">Completed</div>
+    </div>
+    <div class="stat-card stat-warning">
+        <div class="stat-value">{{ tasks|length }}</div>
+        <div class="stat-label">Open Tasks</div>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <div class="card">
+        <h3>Team Members</h3>
+        <div class="member-list">
+            {% for member in members %}
+            <div class="member-item">
+                <div class="member-info">
+                    <img src="{{ member.gravatar(36) }}" class="avatar-sm">
+                    <div>
+                        <strong>{{ member.display_name }}</strong>
+                        {% if member.id == team.lead_id %}<span class="badge badge-info badge-sm">Lead</span>{% endif %}
+                        <div class="text-muted text-sm">{{ member.job_title or member.role|capitalize }}</div>
+                    </div>
+                </div>
+                {% if (current_user.role in ('manager', 'admin') or current_user.id == team.lead_id) and member.id != current_user.id %}
+                <form method="POST" action="{{ url_for('teams.remove_member', team_id=team.id, user_id=member.id) }}" class="inline-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-outline" onclick="return confirm('Remove {{ member.username }}?')">Remove</button>
+                </form>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if current_user.role in ('manager', 'admin') or current_user.id == team.lead_id %}
+        <form method="POST" action="{{ url_for('teams.add_member', team_id=team.id) }}" class="add-member-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <select name="user_id" required>
+                <option value="">Add a member...</option>
+                {% for user in all_users if user not in members %}
+                <option value="{{ user.id }}">{{ user.display_name }} ({{ user.username }})</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-sm btn-primary">Add</button>
+        </form>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-header-row">
+            <h3>Open Tasks</h3>
+            <a href="{{ url_for('tasks.create') }}" class="btn btn-sm btn-primary">+ Task</a>
+        </div>
+        {% if tasks %}
+        <div class="task-list-compact">
+            {% for task in tasks %}
+            <a href="{{ url_for('tasks.detail', task_id=task.id) }}" class="task-list-item">
+                <span class="badge badge-{{ task.priority_class }} badge-sm">{{ task.priority[0]|upper }}</span>
+                <span class="task-list-title">{{ task.title }}</span>
+                <span class="status-badge status-{{ task.status }} badge-sm">{{ task.status_label }}</span>
+                {% if task.assignee %}
+                <img src="{{ task.assignee.gravatar(18) }}" class="avatar-xs" title="{{ task.assignee.username }}">
+                {% endif %}
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted">No open tasks for this team.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

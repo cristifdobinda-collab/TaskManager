@@ -1,0 +1,50 @@
+{% extends "layouts/base.html" %}
+{% block title %}Teams - Task Manager{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Teams</h1>
+    {% if current_user.role in ('manager', 'admin') %}
+    <a href="{{ url_for('teams.create') }}" class="btn btn-primary">+ New Team</a>
+    {% endif %}
+</div>
+
+{% if teams %}
+<div class="teams-grid">
+    {% for team in teams %}
+    <a href="{{ url_for('teams.detail', team_id=team.id) }}" class="team-card card">
+        <div class="team-card-header">
+            <div class="team-color-dot" style="background: {{ team.color }}"></div>
+            <h3>{{ team.name }}</h3>
+        </div>
+        {% if team.description %}
+        <p class="text-muted text-sm">{{ team.description[:120] }}{{ '...' if team.description|length > 120 }}</p>
+        {% endif %}
+        <div class="team-card-meta">
+            <span>{{ team.member_count }} member{{ 's' if team.member_count != 1 }}</span>
+            <span>{{ team.open_tasks_count }} open task{{ 's' if team.open_tasks_count != 1 }}</span>
+        </div>
+        {% if team.lead %}
+        <div class="team-lead">
+            <img src="{{ team.lead.gravatar(20) }}" class="avatar-xs">
+            <span class="text-sm">Led by {{ team.lead.display_name }}</span>
+        </div>
+        {% endif %}
+        <div class="team-members-row">
+            {% for member in team.members[:5] %}
+            <img src="{{ member.gravatar(24) }}" class="avatar-xs" title="{{ member.username }}">
+            {% endfor %}
+            {% if team.member_count > 5 %}
+            <span class="text-muted text-sm">+{{ team.member_count - 5 }}</span>
+            {% endif %}
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card">
+    <p class="text-muted">No teams yet. {% if current_user.role in ('manager', 'admin') %}Create one to get started.{% endif %}</p>
+</div>
+{% endif %}
+{% endblock %}
